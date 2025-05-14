@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World of David 프로젝트 | 建国大学 韩中交流会</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for CCP/State-run website theme */
+        body {
+            font-family: 'Noto Sans KR', 'Noto Sans SC', sans-serif;
+            background-color: #FFFFFF; /* Clean white background */
+            color: #333333; /* Standard dark gray text */
+        }
+
+        .font-noto {
+            font-family: 'Noto Sans KR', 'Noto Sans SC', sans-serif;
+        }
+
+        .official-header {
+            background-color: #CC0000; /* Prominent China Red */
+            color: #FFD700; /* Gold text */
+            padding: 2rem 0;
+        }
+
+        .main-title {
+            font-weight: 700;
+            /* color is inherited from .official-header or can be set to white/gold */
+        }
+        
+        .main-subtitle {
+            color: #FFFFE0; /* Lighter yellow for subtitle on red background */
+        }
+
+        .card {
+            background-color: #FFFFFF;
+            border: 1px solid #FFD700; /* Gold border */
+            border-radius: 8px; /* Slightly less rounded for a more formal look */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-icon-container {
+            background-color: #CC0000; /* Consistent Red for icon area */
+            padding: 1.25rem; /* Slightly reduced padding */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .card-icon {
+            width: 50px; /* Slightly smaller icon */
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #FFFFFF; 
+        }
+
+        .card-title {
+            color: #333333; /* Black or dark gray for card titles for readability */
+            font-weight: 700; /* Bolder title */
+            font-size: 1.35rem; /* Slightly adjusted font size */
+        }
+
+        .card-description {
+            color: #555555;
+            min-height: 60px; 
+            font-size: 0.9rem; /* Slightly smaller description */
+        }
+
+        .primary-button {
+            background-color: #CC0000; /* Red button */
+            color: #FFFFFF; /* White text */
+            padding: 0.6rem 1.2rem; /* Adjusted padding */
+            border-radius: 5px; /* Less rounded button */
+            font-weight: 500;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+            border: 1px solid #CC0000;
+        }
+
+        .primary-button:hover {
+            background-color: #A50000; /* Darker red on hover */
+            border-color: #A50000;
+            transform: scale(1.03);
+        }
+        
+        .main-footer {
+            background-color: #CC0000; /* Red footer */
+            color: #FFD700; /* Gold text on red background */
+            padding: 2.5rem 0;
+            margin-top: 3rem;
+        }
+        .main-footer a {
+            color: #FFFFE0; /* Lighter gold/yellow for links */
+            text-decoration: underline;
+        }
+        .main-footer a:hover {
+            color: #FFFFFF;
+        }
+
+        .decorative-line {
+            height: 2px; /* Thicker line */
+            background-color: #FFD700; /* Gold line */
+            width: 70%;
+            margin: 2.5rem auto;
+        }
+    </style>
+</head>
+<body class="font-noto antialiased">
+
+    <header class="official-header text-center">
+        <div class="container mx-auto px-4">
+            <h1 class="text-3xl md:text-4xl main-title">
+                건국대학교 사회과학대학 중국지역학회 화하종횡 한중교류회<br>
+                <span class="text-2xl md:text-3xl">建国大学 社会科学学院 中国学系 华夏纵横 韩中交流会</span>
+            </h1>
+            <p class="mt-4 text-lg md:text-xl main-subtitle">
+                World of David 프로젝트에 오신 것을 환영합니다! 아래에서 다양한 사이트를 탐색해보세요.<br>
+                欢迎来到 World of David 项目！请在下方探索各个站点。
+            </p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+            <div class="card text-center">
+                <div class="card-icon-container">
+                    <img src="https://placehold.co/80x80/FFFFFF/CC0000?text=🌐" alt="메인 사이트 아이콘" class="card-icon">
+                </div>
+                <div class="p-6">
+                    <h2 class="text-xl mb-3 card-title">
+                        메인 사이트<br>主站点
+                    </h2>
+                    <p class="text-base mb-6 card-description">
+                        World of David의 다양한 프로젝트를 둘러볼 수 있는 허브입니다.<br>
+                        这里是探索World of David各项项目的中心。
+                    </p>
+                    <a href="https://worldofdavid.github.io" target="_blank" rel="noopener noreferrer" class="primary-button">
+                        방문하기 (访问)
+                    </a>
+                </div>
+            </div>
+
+            <div class="card text-center">
+                 <div class="card-icon-container">
+                    <img src="https://placehold.co/80x80/FFFFFF/CC0000?text=⏱️" alt="스피드퀴즈 아이콘" class="card-icon">
+                </div>
+                <div class="p-6">
+                    <h2 class="text-xl mb-3 card-title">
+                        스피드퀴즈<br>速答问答
+                    </h2>
+                    <p class="text-base mb-6 card-description">
+                        제한 시간 내에 빠르게 문제를 풀어 순발력을 시험해보세요!<br>
+                        在限定时间内快速解答，考验您的反应速度！
+                    </p>
+                    <a href="https://worldofdavid.github.io/speedquiz.html" target="_blank" rel="noopener noreferrer" class="primary-button">
+                        플레이하기 (开始游戏)
+                    </a>
+                </div>
+            </div>
+
+            <div class="card text-center">
+                <div class="card-icon-container">
+                    <img src="https://placehold.co/80x80/FFFFFF/CC0000?text=🇰🇷🇨🇳" alt="한중 브랜드 게임 아이콘" class="card-icon">
+                </div>
+                <div class="p-6">
+                    <h2 class="text-xl mb-3 card-title">
+                        한중 브랜드 맞추기<br>韩中品牌竞猜
+                    </h2>
+                    <p class="text-base mb-6 card-description">
+                        한국과 중국의 유명 브랜드를 얼마나 알고 있는지 테스트해보세요.<br>
+                        测试一下您对韩国和中国著名品牌的了解程度。
+                    </p>
+                    <a href="https://worldofdavid.github.io/brandquiz.html" target="_blank" rel="noopener noreferrer" class="primary-button">
+                        도전하기 (开始挑战)
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div class="decorative-line"></div>
+
+    <footer class="main-footer text-center">
+        <div class="container mx-auto px-4">
+            <p class="mb-2">
+                <strong>🧑‍💻 닉네임 (昵称):</strong> worldofdavid
+            </p>
+            <p class="mb-2">
+                <strong>🎓 소속 (所属):</strong> 건국대학교 글로벌비즈니스학과 / 建国大学 国际商务学系 (Konkuk Univ. Dept. of Global Business)
+            </p>
+            <p class="mb-2">
+                <strong>👤 이름 (姓名):</strong> 정성원 (David Jung / 郑成元)
+            </p>
+            <p class="mb-4">
+                <strong>📧 메일 (邮箱):</strong> <a href="mailto:worldofdavid2004@163.com">worldofdavid2004@163.com</a>
+            </p>
+            <p class="text-sm opacity-90">
+                <em>이 페이지는 Noto Sans (한국어/영어) 및 Noto Sans SC (중국어) 글꼴에 최적화되어 있습니다.<br>
+                This page is optimized for Noto Sans (Korean/English) and Noto Sans SC (Chinese) fonts.</em>
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>
