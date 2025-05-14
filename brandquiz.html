@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>브랜드 맞추기 게임 (猜中韩品牌)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 기본 폰트 및 추가 스타일 */
+        body {
+            /* Noto Sans KR (한국어), Noto Sans SC (중국어 간체), Inter (영문/숫자), sans-serif (기본) 순으로 적용 */
+            font-family: 'Noto Sans KR', 'Noto Sans SC', 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f0f9ff; /* 하늘색 계열 배경 */
+            color: #333;
+            padding: 1rem;
+            text-align: center;
+        }
+        .game-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem; /* 둥근 모서리 */
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            width: 100%;
+            max-width: 600px; /* 최대 너비 설정 */
+        }
+        .brand-text {
+            font-size: 2rem; /* 브랜드 텍스트 크기 */
+            font-weight: bold;
+            margin: 1.5rem 0;
+            min-height: 3em; /* 텍스트 높이 고정 (줄바꿈 시 레이아웃 흔들림 방지) */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1e40af; /* 남색 계열 */
+        }
+        .lang-indicator {
+            font-size: 1rem;
+            color: #6b7280; /* 회색 계열 */
+            margin-bottom: 0.5rem;
+        }
+        .progress-text {
+            font-size: 0.9rem;
+            color: #4b5563;
+            margin-top: 1.5rem;
+        }
+        .game-button {
+            background-color: #2563eb; /* 파란색 계열 버튼 */
+            color: white;
+            font-weight: bold;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem; /* 둥근 모서리 */
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+        .game-button:hover {
+            background-color: #1d4ed8; /* 호버 시 더 어두운 파란색 */
+        }
+        .game-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #1e3a8a; /* 더 진한 남색 */
+            margin-bottom: 1.5rem;
+        }
+        .footer-text {
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="game-title">브랜드 맞추기 게임 (猜中韩品牌)</h1>
+
+        <div id="lang-indicator" class="lang-indicator"></div>
+        <div id="brand-display" class="brand-text">게임을 시작하려면 아래 버튼을 누르세요.</div>
+
+        <button id="action-button" class="game-button">게임 시작</button>
+
+        <div id="progress-indicator" class="progress-text"></div>
+    </div>
+
+    <div class="footer-text">
+        모든 브랜드 정보는 교육 및 오락 목적으로만 사용됩니다.
+    </div>
+
+    <script>
+        // 게임 데이터: (qType: 문제 언어, question: 문제 브랜드명, aType: 정답 언어, answer: 정답 브랜드명)
+        // 한국어 문제 75개, 중국어 문제 25개 비율로 구성
+        const gameData = [
+            // 글로벌 브랜드 (한국어 문제 위주)
+            { id: 1, qType: '한국어', question: '나이키', aType: '중국어', answer: '耐克 (Nàikè)' },
+            { id: 2, qType: '한국어', question: '아디다스', aType: '중국어', answer: '阿迪达斯 (Ādídásī)' },
+            { id: 3, qType: '중국어', question: '苹果 (Píngguǒ)', aType: '한국어', answer: '애플' },
+            { id: 4, qType: '한국어', question: '삼성', aType: '중국어', answer: '三星 (Sānxīng)' },
+            { id: 5, qType: '한국어', question: 'LG (엘지)', aType: '중국어', answer: 'LG / 乐金 (Lèjīn)' },
+            { id: 6, qType: '한국어', question: '구글', aType: '중국어', answer: '谷歌 (Gǔgē)' },
+            { id: 7, qType: '중국어', question: '微软 (Wēiruǎn)', aType: '한국어', answer: '마이크로소프트' },
+            { id: 8, qType: '한국어', question: '스타벅스', aType: '중국어', answer: '星巴克 (Xīngbākè)' },
+            { id: 9, qType: '한국어', question: '맥도날드', aType: '중국어', answer: '麦当劳 (Màidāngláo)' },
+            { id: 10, qType: '한국어', question: 'KFC', aType: '중국어', answer: '肯德基 (Kěndéjī)' },
+            { id: 11, qType: '중국어', question: '可口可乐 (Kěkǒukělè)', aType: '한국어', answer: '코카콜라' },
+            { id: 12, qType: '한국어', question: '펩시', aType: '중국어', answer: '百事可乐 (Bǎishìkělè)' },
+            { id: 13, qType: '한국어', question: '샤넬', aType: '중국어', answer: '香奈儿 (Xiāngnài\'ér)' },
+            { id: 14, qType: '한국어', question: '루이비통', aType: '중국어', answer: '路易威登 (Lùyì Wēidēng)' },
+            { id: 15, qType: '중국어', question: '古驰 (Gǔchí)', aType: '한국어', answer: '구찌' },
+            { id: 16, qType: '한국어', question: '프라다', aType: '중국어', answer: '普拉达 (Pǔlādá)' },
+            { id: 17, qType: '한국어', question: '에르메스', aType: '중국어', answer: '爱马仕 (Àimǎshì)' },
+            { id: 18, qType: '한국어', question: '디올', aType: '중국어', answer: '迪奥 (Dí\'ào)' },
+            { id: 19, qType: '중국어', question: '博柏利 (Bóbólì)', aType: '한국어', answer: '버버리' },
+            { id: 20, qType: '한국어', question: '롤렉스', aType: '중국어', answer: '劳力士 (Láolìshì)' },
+            { id: 21, qType: '한국어', question: '오메가', aType: '중국어', answer: '欧米茄 (Ōumǐjiā)' },
+            { id: 22, qType: '한국어', question: '까르띠에', aType: '중국어', answer: '卡地亚 (Kǎdìyà)' },
+            { id: 23, qType: '중국어', question: '宝马 (Bǎomǎ)', aType: '한국어', answer: 'BMW' },
+            { id: 24, qType: '한국어', question: '메르세데스-벤츠', aType: '중국어', answer: '梅赛德斯-奔驰 (Méisàidésī-Bēnchí) / 奔驰 (Bēnchí)' },
+            { id: 25, qType: '한국어', question: '아우디', aType: '중국어', answer: '奥迪 (Àodí)' },
+            { id: 26, qType: '한국어', question: '폭스바겐', aType: '중국어', answer: '大众 (Dàzhòng)' },
+            { id: 27, qType: '중국어', question: '丰田 (Fēngtián)', aType: '한국어', answer: '토요타' },
+            { id: 28, qType: '한국어', question: '혼다', aType: '중국어', answer: '本田 (Běntián)' },
+            { id: 29, qType: '한국어', question: '포드', aType: '중국어', answer: '福特 (Fútè)' },
+            { id: 30, qType: '한국어', question: '테슬라', aType: '중국어', answer: '特斯拉 (Tèsīlā)' },
+            { id: 31, qType: '중국어', question: '索尼 (Suǒní)', aType: '한국어', answer: '소니' },
+            { id: 32, qType: '한국어', question: '파나소닉', aType: '중국어', answer: '松下 (Sōngxià)' },
+            { id: 33, qType: '한국어', question: '필립스', aType: '중국어', answer: '飞利浦 (Fēilìpǔ)' },
+            { id: 34, qType: '한국어', question: '이케아', aType: '중국어', answer: '宜家 (Yíjiā)' },
+            { id: 35, qType: '중국어', question: 'H&M', aType: '한국어', answer: 'H&M (에이치앤엠)' }, // 중국에서도 H&M으로 통용
+            { id: 36, qType: '한국어', question: '자라', aType: '중국어', answer: 'ZARA' }, // 중국에서도 ZARA로 통용
+            { id: 37, qType: '한국어', question: '유니클로', aType: '중국어', answer: '优衣库 (Yōuyīkù)' },
+            { id: 38, qType: '한국어', question: '로레알', aType: '중국어', answer: '欧莱雅 (Ōuláiyǎ)' },
+            { id: 39, qType: '중국어', question: '雅诗兰黛 (Yǎshīlándài)', aType: '한국어', answer: '에스티로더' },
+            { id: 40, qType: '한국어', question: '랑콤', aType: '중국어', answer: '兰蔻 (Lánkòu)' },
+            { id: 41, qType: '한국어', question: '시세이도', aType: '중국어', answer: '资生堂 (Zīshēngtáng)' },
+            { id: 42, qType: '한국어', question: 'P&G (피앤지)', aType: '중국어', answer: '宝洁 (Bǎojié)' },
+            { id: 43, qType: '중국어', question: '联合利华 (Liánhé Lìhuá)', aType: '한국어', answer: '유니레버' },
+            { id: 44, qType: '한국어', question: '네슬레', aType: '중국어', answer: '雀巢 (Quècháo)' },
+            { id: 45, qType: '한국어', question: '다농', aType: '중국어', answer: '达能 (Dánéng)' },
+            { id: 46, qType: '한국어', question: '레고', aType: '중국어', answer: '乐高 (Lègāo)' },
+            { id: 47, qType: '중국어', question: '迪士尼 (Díshìní)', aType: '한국어', answer: '디즈니' },
+            { id: 48, qType: '한국어', question: '넷플릭스', aType: '중국어', answer: '网飞 (Wǎngfēi) / 奈飞 (Nàifēi)' },
+            { id: 49, qType: '한국어', question: '아마존', aType: '중국어', answer: '亚马逊 (Yàmǎxùn)' },
+            { id: 50, qType: '한국어', question: '인텔', aType: '중국어', answer: '英特尔 (Yīngtè\'ěr)' },
+            { id: 51, qType: '중국어', question: '惠普 (Huìpǔ)', aType: '한국어', answer: 'HP (에이치피)' },
+            { id: 52, qType: '한국어', question: '델', aType: '중국어', answer: '戴尔 (Dài\'ěr)' },
+            { id: 53, qType: '한국어', question: '캐논', aType: '중국어', answer: '佳能 (Jiānéng)' },
+            { id: 54, qType: '한국어', question: '니콘', aType: '중국어', answer: '尼康 (Níkāng)' },
+            { id: 55, qType: '중국어', question: '强生 (Qiángshēng)', aType: '한국어', answer: '존슨앤드존슨' },
+            { id: 56, qType: '한국어', question: '질레트', aType: '중국어', answer: '吉列 (Jíliè)' },
+            { id: 57, qType: '한국어', question: '팬틴', aType: '중국어', answer: '潘婷 (Pāntíng)' },
+            { id: 58, qType: '한국어', question: '도브', aType: '중국어', answer: '多芬 (Duōfēn)' },
+            { id: 59, qType: '중국어', question: '高露洁 (Gāolùjié)', aType: '한국어', answer: '콜게이트' },
+            { id: 60, qType: '한국어', question: '페이스북', aType: '중국어', answer: '脸书 (Liǎnshū)' },
+            { id: 61, qType: '한국어', question: '인스타그램', aType: '중국어', answer: '照片墙 (Zhàopiànqiáng) / IG' },
+            { id: 62, qType: '한국어', question: '유튜브', aType: '중국어', answer: '油管 (Yóuguǎn)' },
+            { id: 63, qType: '중국어', question: '推特 (Tuītè) / X', aType: '한국어', answer: '트위터 / X (엑스)' },
+            { id: 64, qType: '한국어', question: '켈로그', aType: '중국어', answer: '家乐氏 (Jiālèshì)' },
+            { id: 65, qType: '한국어', question: '하이네켄', aType: '중국어', answer: '喜力 (Xǐlì)' },
+            { id: 66, qType: '한국어', question: '버드와이저', aType: '중국어', answer: '百威 (Bǎiwēi)' },
+            { id: 67, qType: '중국어', question: '健力士 (Jiànlìshì)', aType: '한국어', answer: '기네스' },
+            { id: 68, qType: '한국어', question: '스와로브스키', aType: '중국어', answer: '施华洛世奇 (Shīhuáluòshìqí)' },
+            { id: 69, qType: '한국어', question: '티쏘', aType: '중국어', answer: '天梭 (Tiānsuō)' },
+            { id: 70, qType: '한국어', question: '에어비앤비', aType: '중국어', answer: '爱彼迎 (Àibǐyíng)' },
+
+            // 한국 브랜드 (중국 인지도, 한국어 문제)
+            { id: 71, qType: '한국어', question: '현대자동차', aType: '중국어', answer: '现代 (Xiàndài)' },
+            { id: 72, qType: '한국어', question: '기아자동차', aType: '중국어', answer: '起亚 (Qǐyà)' },
+            { id: 73, qType: '한국어', question: '설화수', aType: '중국어', answer: '雪花秀 (Xuěhuāxiù)' },
+            { id: 74, qType: '한국어', question: '라네즈', aType: '중국어', answer: '兰芝 (Lánzhī)' },
+            { id: 75, qType: '한국어', question: '이니스프리', aType: '중국어', answer: '悦诗风吟 (Yuèshīfēngyín)' },
+            { id: 76, qType: '한국어', question: '헤라', aType: '중국어', answer: '赫妍 (Hèyán)' },
+            { id: 77, qType: '한국어', question: '아모레퍼시픽', aType: '중국어', answer: '爱茉莉太平洋 (Àimòlì Tàipíngyáng)' },
+            { id: 78, qType: '한국어', question: '오리온', aType: '중국어', answer: '好丽友 (Hàolìyǒu)' },
+            { id: 79, qType: '한국어', question: '농심', aType: '중국어', answer: '农心 (Nóngxīn)' },
+            { id: 80, qType: '한국어', question: '파리바게뜨', aType: '중국어', answer: '巴黎贝甜 (Bālí Bèitián)' },
+            { id: 81, qType: '한국어', question: '뚜레쥬르', aType: '중국어', answer: '多乐之日 (Duōlèzhīrì)' },
+            { id: 82, qType: '한국어', question: '비비고', aType: '중국어', answer: '必品阁 (Bìpǐngé)' },
+            { id: 83, qType: '한국어', question: 'MCM', aType: '중국어', answer: 'MCM' },
+            { id: 84, qType: '한국어', question: '휠라', aType: '중국어', answer: '斐乐 (Fěilè)' },
+            { id: 85, qType: '한국어', question: '네이버 라인', aType: '중국어', answer: '连我 (Liánwǒ)' },
+            { id: 86, qType: '한국어', question: '카카오프렌즈', aType: '중국어', answer: '咔咔朋友 (Kākā Péngyǒu) / 카카오프렌즈' },
+            { id: 87, qType: '한국어', question: '롯데', aType: '중국어', answer: '乐天 (Lètiān)' },
+            { id: 88, qType: '한국어', question: '이랜드', aType: '중국어', answer: '衣恋 (Yīliàn)' },
+            { id: 89, qType: '한국어', question: '스톤헨지 (주얼리)', aType: '중국어', answer: '斯通亨奇 (Sītōnghēngqí)' },
+            { id: 90, qType: '한국어', question: '젠틀몬스터', aType: '중국어', answer: '젠틀몬스터 / 格特墨斯特 (Gétèmòsītè)' },
+
+            // 중국 브랜드 (한국 인지도, 중국어 문제)
+            { id: 91, qType: '중국어', question: '华为 (Huáwéi)', aType: '한국어', answer: '화웨이' },
+            { id: 92, qType: '중국어', question: '小米 (Xiǎomǐ)', aType: '한국어', answer: '샤오미' },
+            { id: 93, qType: '중국어', question: '联想 (Liánxiǎng)', aType: '한국어', answer: '레노버' },
+            { id: 94, qType: '중국어', question: '抖音 (Dǒuyīn)', aType: '한국어', answer: '틱톡' },
+            { id: 95, qType: '중국어', question: '阿里巴巴 (Ālǐbābā)', aType: '한국어', answer: '알리바바' },
+            { id: 96, qType: '중국어', question: '腾讯 (Téngxùn)', aType: '한국어', answer: '텐센트' },
+            { id: 97, qType: '중국어', question: '大疆 (Dàjiāng)', aType: '한국어', answer: 'DJI (디제이아이)' },
+            { id: 98, qType: '중국어', question: '青岛啤酒 (Qīngdǎo Píjiǔ)', aType: '한국어', answer: '칭따오 맥주' },
+            { id: 99, qType: '중국어', question: '海尔 (Hǎi\'ěr)', aType: '한국어', answer: '하이얼' },
+            { id: 100, qType: '중국어', question: '比亚迪 (Bǐyàdí)', aType: '한국어', answer: 'BYD (비야디)' },
+        ];
+
+        // DOM 요소 가져오기
+        const brandDisplay = document.getElementById('brand-display');
+        const langIndicator = document.getElementById('lang-indicator');
+        const actionButton = document.getElementById('action-button');
+        const progressIndicator = document.getElementById('progress-indicator');
+
+        // 게임 상태 변수
+        let currentBrandIndex = 0;
+        let isShowingQuestion = true; // 현재 문제 표시 중인지, 정답 표시 중인지
+        let gameStarted = false;
+        let shuffledGameData = []; // 섞인 게임 데이터 배열
+
+        // 데이터를 무작위로 섞는 함수 (Fisher-Yates shuffle)
+        function shuffleArray(array) {
+            let newArray = [...array]; // 원본 배열을 변경하지 않기 위해 복사본 사용
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]]; // 요소 위치 교환
+            }
+            return newArray;
+        }
+
+        // 화면 업데이트 함수
+        function updateDisplay() {
+            if (currentBrandIndex >= shuffledGameData.length) {
+                // 게임 종료
+                brandDisplay.textContent = '🎉 게임 종료! 🎉';
+                langIndicator.textContent = '모든 문제를 다 푸셨습니다.';
+                actionButton.textContent = '다시 시작';
+                actionButton.onclick = startGame; // 다시 시작 기능
+                progressIndicator.textContent = `총 ${shuffledGameData.length} 문제 완료`;
+                return;
+            }
+
+            const currentBrand = shuffledGameData[currentBrandIndex];
+
+            if (isShowingQuestion) {
+                // 문제 표시
+                langIndicator.textContent = `문제 (${currentBrand.qType})`;
+                brandDisplay.textContent = currentBrand.question;
+                actionButton.textContent = '정답 보기';
+            } else {
+                // 정답 표시
+                langIndicator.textContent = `정답 (${currentBrand.aType})`;
+                brandDisplay.textContent = currentBrand.answer;
+                actionButton.textContent = '다음 문제';
+            }
+            // 진행 상황 표시
+            progressIndicator.textContent = `문제 ${currentBrandIndex + 1} / ${shuffledGameData.length}`;
+        }
+
+        // 게임 시작 함수
+        function startGame() {
+            shuffledGameData = shuffleArray(gameData); // 게임 시작 시 문제 순서 섞기
+            currentBrandIndex = 0;
+            isShowingQuestion = true;
+            gameStarted = true;
+            actionButton.onclick = handleAction; // 버튼 이벤트 핸들러 변경
+            updateDisplay();
+        }
+
+        // 버튼 클릭 처리 함수
+        function handleAction() {
+            if (!gameStarted) {
+                startGame();
+                return;
+            }
+
+            if (isShowingQuestion) {
+                // 현재 문제를 보고 있었으면 정답을 보여줌
+                isShowingQuestion = false;
+            } else {
+                // 현재 정답을 보고 있었으면 다음 문제로 넘어감
+                currentBrandIndex++;
+                isShowingQuestion = true;
+            }
+            updateDisplay();
+        }
+
+        // 초기 버튼 설정
+        actionButton.onclick = startGame;
+
+    </script>
+</body>
+</html>
