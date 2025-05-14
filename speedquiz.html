@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>중국어 단어 퀴즈 게임</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif; /* 기본 UI 폰트는 Noto Sans KR 유지 */
+            background-color: #f3f4f6; 
+            color: #1f2937; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            padding: 2rem; 
+            width: 100%;
+            max-width: 600px; 
+            margin: 1rem auto;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem; 
+            border-radius: 0.5rem; 
+            font-weight: 600; 
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            cursor: pointer;
+            border: none;
+            text-align: center;
+        }
+        .btn-primary {
+            background-color: #3b82f6; 
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+        .btn-secondary {
+            background-color: #e5e7eb; 
+            color: #374151; 
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+        .btn-correct {
+            background-color: #10b981; 
+            color: white;
+        }
+        .btn-correct:hover {
+            background-color: #059669;
+        }
+        .btn-pass {
+            background-color: #f59e0b; 
+            color: white;
+        }
+        .btn-pass:hover {
+            background-color: #d97706;
+        }
+        .btn-giveup {
+            background-color: #ef4444; 
+            color: white;
+        }
+        .btn-giveup:hover {
+            background-color: #dc2626;
+        }
+        .category-btn {
+            background-color: #6366f1; 
+            color: white;
+            margin: 0.5rem;
+            flex-grow: 1; 
+        }
+        .category-btn:hover {
+            background-color: #4f46e5;
+        }
+        .word-display-area {
+            background-color: #f9fafb; 
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .word-display-area p { margin-bottom: 0.75rem; }
+        .word-display-area .label { font-size: 0.875rem; color: #6b7280; } 
+        .word-display-area .value { font-weight: 500; } 
+        /* 중국어 텍스트에 Noto Sans SC 우선 적용 */
+        .chinese-text { 
+            font-family: 'Noto Sans SC', 'Noto Sans KR', sans-serif;
+            font-size: 2.25rem; 
+            color: #1e3a8a; 
+            font-weight: 500; /* SC 폰트에 맞게 두께 조정 (400, 500, 700 중 선택) */
+        } 
+        .pinyin-text { font-size: 1.25rem; color: #5b21b6; } 
+        .korean-text { font-size: 1.5rem; color: #047857; }
+
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal.active { opacity: 1; pointer-events: auto; }
+        .modal-content {
+            background-color: white; padding: 2rem; border-radius: 0.75rem;
+            text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+            transform: scale(0.95); transition: transform 0.3s ease;
+        }
+        .modal.active .modal-content { transform: scale(1); }
+
+        #score-area { font-size: 1.125rem; font-weight: 500; margin-bottom: 1rem; }
+        #progress-bar-container { width: 100%; background-color: #e5e7eb; border-radius: 0.25rem; overflow: hidden; margin-bottom: 1rem;}
+        #progress-bar { width: 0%; height: 10px; background-color: #3b82f6; transition: width 0.3s ease;}
+
+        /* 모바일 반응성 */
+        @media (max-width: 640px) {
+            .card { padding: 1.5rem; }
+            .btn { padding: 0.6rem 1rem; font-size: 0.9rem; }
+            .chinese-text { font-size: 1.75rem; }
+            .pinyin-text { font-size: 1.1rem; }
+            .korean-text { font-size: 1.25rem; }
+            .word-display-area { padding: 1rem; }
+            #category-buttons-container { flex-direction: column; }
+            .category-btn { width: 100%; margin-left:0; margin-right:0;}
+        }
+    </style>
+</head>
+<body>
+    <div id="app-container" class="card">
+
+        <div id="message-modal" class="modal">
+            <div class="modal-content">
+                <p id="message-text" class="text-lg mb-6"></p>
+                <button id="close-message-btn" class="btn btn-primary w-full">확인</button>
+            </div>
+        </div>
+
+        <section id="category-selection-section">
+            <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">중국어 단어 퀴즈</h1>
+            <p class="text-center text-gray-600 mb-6">학습할 카테고리를 선택하세요.</p>
+            <div id="category-buttons-container" class="flex flex-col sm:flex-row justify-center gap-4 mb-6">
+                </div>
+        </section>
+
+        <section id="game-section" class="hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="current-category-title" class="text-2xl font-semibold text-indigo-700"></h2>
+                <button id="give-up-btn-game" class="btn btn-giveup text-sm">포기</button>
+            </div>
+
+            <div id="score-area" class="text-center text-gray-700">점수: 0 / 0</div>
+            <div id="progress-bar-container">
+                <div id="progress-bar"></div>
+            </div>
+
+            <div class="word-display-area">
+                <div>
+                    <p class="label">중국어</p>
+                    <p id="chinese-word-display" class="value chinese-text">-</p>
+                </div>
+                <div class="mt-3">
+                    <p class="label">병음</p>
+                    <p id="pinyin-display" class="value pinyin-text">-</p>
+                </div>
+                <div class="mt-3">
+                    <p class="label">한국어 뜻</p>
+                    <p id="korean-meaning-display" class="value korean-text">-</p>
+                </div>
+            </div>
+            
+            <div class="flex justify-around mt-8 space-x-3">
+                <button id="correct-answer-btn" class="btn btn-correct flex-1">O (정답)</button>
+                <button id="pass-btn" class="btn btn-pass flex-1">PASS</button>
+            </div>
+        </section>
+
+        <section id="game-over-section" class="hidden">
+            <h2 class="text-3xl font-bold text-center mb-6 text-red-600">게임 종료!</h2>
+            <p id="final-score-display" class="text-xl text-center text-gray-700 mb-8"></p>
+            <button id="restart-game-btn" class="btn btn-primary w-full">새 게임 시작</button>
+        </section>
+    </div>
+
+    <script>
+        // 제공된 단어 데이터 원본 (스크립트 내에서 파싱)
+        const wordDataSource = `
+A. 물건 (物品 - Wùpǐn)
+手机 (shǒujī) - 휴대폰
+电脑 (diànnǎo) - 컴퓨터
+电视 (diànshì) - 텔레비전
+冰箱 (bīngxiāng) - 냉장고
+空调 (kōngtiáo) - 에어컨
+洗衣机 (xǐyījī) - 세탁기
+桌子 (zhuōzi) - 책상, 테이블
+椅子 (yǐzi) - 의자
+床 (chuáng) - 침대
+灯 (dēng) - 등, 램프
+书 (shū) - 책
+笔 (bǐ) - 펜, 붓
+杯子 (bēizi) - 컵
+碗 (wǎn) - 그릇
+筷子 (kuàizi) - 젓가락
+勺子 (sháozi) - 숟가락
+刀 (dāo) - 칼
+自行车 (zìxíngchē) - 자전거
+汽车 (qìchē) - 자동차
+公共汽车 (gōnggòng qìchē) - 버스
+地铁 (dìtiě) - 지하철
+飞机 (fēijī) - 비행기
+火车 (huǒchē) - 기차
+钥匙 (yàoshi) - 열쇠
+锁 (suǒ) - 자물쇠
+门 (mén) - 문
+窗户 (chuānghu) - 창문
+眼镜 (yǎnjìng) - 안경
+手表 (shǒubiǎo) - 손목시계
+雨伞 (yǔsǎn) - 우산
+包 (bāo) - 가방
+钱包 (qiánbāo) - 지갑
+衣服 (yīfu) - 옷
+裤子 (kùzi) - 바지
+鞋子 (xiézi) - 신발
+帽子 (màozi) - 모자
+袜子 (wàzi) - 양말
+牙刷 (yáshuā) - 칫솔
+牙膏 (yágāo) - 치약
+毛巾 (máojīn) - 수건
+肥皂 (féizào) - 비누
+镜子 (jìngzi) - 거울
+相机 (xiàngjī) - 카메라
+电话 (diànhuà) - 전화기
+护照 (hùzhào) - 여권
+钱 (qián) - 돈
+地图 (dìtú) - 지도
+药 (yào) - 약
+垃圾桶 (lājītǒng) - 쓰레기통
+遥控器 (yáokòngqì) - 리모컨
+B. 문화 (文化 - Wénhuà)
+春节 (Chūnjié) - 춘절 (설날)
+中秋节 (Zhōngqiūjié) - 중추절 (추석)
+元宵节 (Yuánxiāojié) - 원소절 (정월대보름)
+红包 (hóngbāo) - 홍바오 (세뱃돈, 축의금 봉투)
+月饼 (yuèbǐng) - 월병
+饺子 (jiǎozi) - 교자 (만두)
+粽子 (zòngzi) - 쫑즈 (대나무 잎이나 갈대 잎으로 싼 찹쌀밥)
+火锅 (huǒguō) - 훠궈 (중국식 샤부샤부)
+北京烤鸭 (Běijīng kǎoyā) - 베이징 카오야 (북경 오리구이)
+茶 (chá) - 차
+功夫 (gōngfu) - 쿵후 (무술)
+太极拳 (tàijíquán) - 태극권
+书法 (shūfǎ) - 서예
+国画 (guóhuà) - 국화 (중국 전통 회화)
+京剧 (Jīngjù) - 경극
+变脸 (biànliǎn) - 변검 (가면 바꾸기 공연)
+旗袍 (qípáo) - 치파오
+汉服 (Hànfú) - 한푸 (한족 전통 의상)
+龙 (lóng) - 용
+熊猫 (xióngmāo) - 판다
+长城 (Chángchéng) - 만리장성
+故宫 (Gùgōng) - 고궁 (자금성)
+兵马俑 (bīngmǎyǒng) - 병마용
+东方明珠 (Dōngfāng Míngzhū) - 동방명주
+电影 (diànyǐng) - 영화
+音乐 (yīnyuè) - 음악
+舞蹈 (wǔdǎo) - 무용, 춤
+漫画 (mànhuà) - 만화
+小说 (xiǎoshuō) - 소설
+诗歌 (shīgē) - 시가
+历史 (lìshǐ) - 역사
+传统 (chuántǒng) - 전통
+习俗 (xísú) - 풍습
+节日 (jiérì) - 명절, 기념일
+婚礼 (hūnlǐ) - 결혼식
+葬礼 (zànglǐ) - 장례식
+语言 (yǔyán) - 언어
+文字 (wénzì) - 문자
+筷子文化 (kuàizi wénhuà) - 젓가락 문화
+茶文化 (chá wénhuà) - 차 문화
+酒文化 (jiǔ wénhuà) - 술 문화
+红色 (hóngsè) - 빨간색 (중국에서 길한 색)
+数字八 (shùzì bā) - 숫자 8 (중국에서 길한 숫자 '파')
+麻将 (májiàng) - 마작
+象棋 (xiàngqí) - 중국 장기
+广场舞 (guǎngchǎngwǔ) - 광장무
+KTV (KTV) - 노래방 (KTV)
+网红 (wǎnghóng) - 왕홍 (인터넷 스타)
+直播 (zhíbō) - 라이브 방송
+微信 (Wēixìn) - 위챗 (중국 메신저)
+C. 직업 (职业 - Zhíyè)
+老师 (lǎoshī) - 선생님
+学生 (xuésheng) - 학생
+医生 (yīshēng) - 의사
+护士 (hùshi) - 간호사
+警察 (jǐngchá) - 경찰
+消防员 (xiāofángyuán) - 소방관
+司机 (sījī) - 운전기사
+飞行员 (fēixíngyuán) - 비행기 조종사
+空乘 (kōngchéng) / 空姐 (kōngjiě) / 空少 (kōngshào) - 승무원
+厨师 (chúshī) - 요리사
+服务员 (fúwùyuán) - 종업원, 서비스 직원
+演员 (yǎnyuán) - 배우
+歌手 (gēshǒu) - 가수
+画家 (huàjiā) - 화가
+作家 (zuòjiā) - 작가
+记者 (jìzhě) - 기자
+主持人 (zhǔchírén) - 사회자, MC
+运动员 (yùndòngyuán) - 운동선수
+教练 (jiàoliàn) - 코치, 감독
+工程师 (gōngchéngshī) - 엔지니어
+科学家 (kēxuéjiā) - 과학자
+律师 (lǜshī) - 변호사
+法官 (fǎguān) - 판사
+建筑师 (jiànzhùshī) - 건축가
+设计师 (shèjìshī) - 디자이너
+商人 (shāngrén) - 상인, 사업가
+公司职员 (gōngsī zhíyuán) - 회사원
+经理 (jīnglǐ) - 매니저, 부장
+老板 (lǎobǎn) - 사장, 주인
+秘书 (mìshū) - 비서
+农民 (nóngmín) - 농민
+渔民 (yúmín) - 어민
+工人 (gōngrén) - 노동자, 인부
+清洁工 (qīngjiégōng) - 환경미화원, 청소부
+保安 (bǎo'ān) - 보안요원, 경비원
+快递员 (kuàidìyuán) - 택배기사
+外卖员 (wàimàiyuán) - 배달원 (음식)
+导游 (dǎoyóu) - 관광 가이드
+翻译 (fānyì) - 번역가, 통역가
+魔术师 (móshùshī) - 마술사
+摄影师 (shèyǐngshī) - 사진사
+理发师 (lǐfàshī) - 이발사, 미용사
+模特 (mótè) - 모델
+军人 (jūnrén) - 군인
+总统 (zǒngtǒng) - 대통령
+市长 (shìzhǎng) - 시장 (도시의)
+银行家 (yínhángjiā) - 은행가
+会计 (kuàijì) - 회계사
+店员 (diànyuán) - 점원
+教授 (jiàoshòu) - 교수
+        `;
+
+        let wordDatabase = {}; // 파싱된 단어가 저장될 객체
+
+        // HTML 요소
+        const categorySelectionSection = document.getElementById('category-selection-section');
+        const gameSection = document.getElementById('game-section');
+        const gameOverSection = document.getElementById('game-over-section');
+        const categoryButtonsContainer = document.getElementById('category-buttons-container');
+        const currentCategoryTitle = document.getElementById('current-category-title');
+        const scoreArea = document.getElementById('score-area');
+        const progressBar = document.getElementById('progress-bar');
+        const chineseWordDisplay = document.getElementById('chinese-word-display');
+        const pinyinDisplay = document.getElementById('pinyin-display');
+        const koreanMeaningDisplay = document.getElementById('korean-meaning-display');
+        const correctAnswerBtn = document.getElementById('correct-answer-btn');
+        const passBtn = document.getElementById('pass-btn');
+        const giveUpBtnGame = document.getElementById('give-up-btn-game');
+        const finalScoreDisplay = document.getElementById('final-score-display');
+        const restartGameBtn = document.getElementById('restart-game-btn');
+        const messageModal = document.getElementById('message-modal');
+        const messageText = document.getElementById('message-text');
+        const closeMessageBtn = document.getElementById('close-message-btn');
+
+        // 게임 상태 변수
+        let currentCategory = '';
+        let wordsForCurrentCategory = [];
+        let currentWordIndex = 0;
+        let score = 0;
+        let maxQuestions = 0; // 카테고리별 최대 문제 수 (50개 또는 단어 수)
+        let questionsAttempted = 0;
+
+
+        // --- 단어 데이터 파싱 함수 ---
+        function parseWordData() {
+            const lines = wordDataSource.trim().split('\n');
+            let currentTempCategoryName = '';
+            let categoryKey = '';
+
+            lines.forEach(line => {
+                line = line.trim();
+                if (line.match(/^[A-C]\.\s*(.+)\s*\(.+\s*-\s*.+\)/)) { // 카테고리 제목 라인 (예: A. 물건 (物品 - Wùpǐn))
+                    const categoryMatch = line.match(/^[A-C]\.\s*(.+?)\s*\((.*?)\s*-\s*(.*?)\)/);
+                    if (categoryMatch) {
+                        categoryKey = categoryMatch[1].trim(); // 예: "물건"
+                        wordDatabase[categoryKey] = [];
+                    }
+                } else if (line && categoryKey) { // 단어 라인
+                    const wordMatch = line.match(/^(.+?)\s*(?:\((.*?)\))?\s*-\s*(.+)$/);
+                    if (wordMatch) {
+                        let chinese = wordMatch[1].trim();
+                        let pinyin = wordMatch[2] ? wordMatch[2].trim() : ''; 
+                        let korean = wordMatch[3].trim();
+                        
+                        if (chinese.includes('/')) {
+                            const chineseParts = chinese.split('/').map(s => s.trim());
+                            const pinyinParts = pinyin.split('/').map(s => s.trim());
+                            chinese = chineseParts[0];
+                            pinyin = pinyinParts.length === chineseParts.length ? pinyinParts[0] : (pinyinParts[0] || '');
+                        }
+                        wordDatabase[categoryKey].push({ chinese, pinyin, korean });
+                    }
+                }
+            });
+        }
+
+        // --- UI 업데이트 함수 ---
+        function showSection(sectionElement) {
+            [categorySelectionSection, gameSection, gameOverSection].forEach(sec => sec.classList.add('hidden'));
+            sectionElement.classList.remove('hidden');
+        }
+
+        function showMessage(message) {
+            messageText.textContent = message;
+            messageModal.classList.add('active');
+        }
+        closeMessageBtn.addEventListener('click', () => messageModal.classList.remove('active'));
+
+        function updateScoreDisplay() {
+            scoreArea.textContent = `점수: ${score} / ${questionsAttempted} (총 ${maxQuestions} 문제)`;
+            const progress = maxQuestions > 0 ? (questionsAttempted / maxQuestions) * 100 : 0;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // --- 게임 로직 함수 ---
+        function initializeGame() {
+            parseWordData(); 
+            categoryButtonsContainer.innerHTML = ''; 
+            Object.keys(wordDatabase).forEach(categoryName => {
+                const button = document.createElement('button');
+                button.textContent = categoryName;
+                button.classList.add('btn', 'category-btn');
+                button.addEventListener('click', () => selectCategory(categoryName));
+                categoryButtonsContainer.appendChild(button);
+            });
+            showSection(categorySelectionSection);
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function selectCategory(categoryName) {
+            currentCategory = categoryName;
+            currentCategoryTitle.textContent = categoryName;
+            
+            const words = wordDatabase[categoryName];
+            if (!words || words.length === 0) {
+                showMessage(`"${categoryName}" 카테고리에 단어가 없습니다. 다른 카테고리를 선택해주세요.`);
+                return;
+            }
+
+            wordsForCurrentCategory = [...words];
+            shuffleArray(wordsForCurrentCategory);
+            
+            maxQuestions = Math.min(50, wordsForCurrentCategory.length); 
+            if (maxQuestions === 0) {
+                 showMessage(`"${categoryName}" 카테고리에 문제가 충분하지 않습니다.`);
+                 return;
+            }
+
+            currentWordIndex = 0;
+            score = 0;
+            questionsAttempted = 0;
+            
+            showSection(gameSection);
+            displayNextWord();
+            updateScoreDisplay();
+        }
+
+        function displayNextWord() {
+            if (currentWordIndex < maxQuestions) {
+                const word = wordsForCurrentCategory[currentWordIndex];
+                chineseWordDisplay.textContent = word.chinese;
+                pinyinDisplay.textContent = word.pinyin || '-'; 
+                koreanMeaningDisplay.textContent = word.korean;
+                correctAnswerBtn.disabled = false;
+                passBtn.disabled = false;
+            } else {
+                endGame(); 
+            }
+        }
+
+        function handleAnswer(isCorrect) {
+            if (currentWordIndex >= maxQuestions) return; 
+
+            correctAnswerBtn.disabled = true;
+            passBtn.disabled = true;
+            questionsAttempted++;
+
+            if (isCorrect) {
+                score++;
+            }
+            
+            updateScoreDisplay();
+            
+            setTimeout(() => {
+                currentWordIndex++;
+                if (currentWordIndex < maxQuestions) {
+                    displayNextWord();
+                } else {
+                    endGame();
+                }
+            }, 500); 
+        }
+
+        function handlePass() {
+            if (currentWordIndex >= maxQuestions) return;
+
+            correctAnswerBtn.disabled = true;
+            passBtn.disabled = true;
+            questionsAttempted++;
+            
+            updateScoreDisplay();
+
+            setTimeout(() => {
+                currentWordIndex++;
+                 if (currentWordIndex < maxQuestions) {
+                    displayNextWord();
+                } else {
+                    endGame();
+                }
+            }, 500);
+        }
+
+        function giveUpGame() {
+            endGame(true); 
+        }
+
+        function endGame(wasGivenUp = false) {
+            showSection(gameOverSection);
+            let message = `최종 점수: ${score} / ${questionsAttempted}`;
+            if (wasGivenUp) {
+                message = `게임 포기! ${message}`;
+            } else if (questionsAttempted < maxQuestions && questionsAttempted > 0) {
+                 message = `모든 문제를 풀기 전에 종료되었습니다. ${message}`;
+            } else if (questionsAttempted === 0 && maxQuestions > 0) {
+                message = `문제를 풀지 않고 종료했습니다. 점수: 0 / 0`;
+            } else if (questionsAttempted === 0 && maxQuestions === 0) {
+                message = `플레이할 문제가 없었습니다.`;
+            }
+            finalScoreDisplay.textContent = message;
+        }
+
+        function restartGame() {
+            currentCategory = '';
+            wordsForCurrentCategory = [];
+            currentWordIndex = 0;
+            score = 0;
+            maxQuestions = 0;
+            questionsAttempted = 0;
+            
+            chineseWordDisplay.textContent = '-';
+            pinyinDisplay.textContent = '-';
+            koreanMeaningDisplay.textContent = '-';
+            progressBar.style.width = '0%';
+            
+            initializeGame(); 
+        }
+
+        // 이벤트 리스너
+        correctAnswerBtn.addEventListener('click', () => handleAnswer(true));
+        passBtn.addEventListener('click', handlePass);
+        giveUpBtnGame.addEventListener('click', giveUpGame);
+        restartGameBtn.addEventListener('click', restartGame);
+
+        // 게임 시작
+        initializeGame();
+
+    </script>
+</body>
+</html>
